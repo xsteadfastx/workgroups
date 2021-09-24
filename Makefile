@@ -30,3 +30,7 @@ tidy:
 .PHONY: coverage
 coverage:
 	gocover-cobertura < coverage.out > coverage.xml
+
+.PHONY: install-tools
+install-tools:
+	go list -f '{{range .Imports}}{{.}} {{end}}' tools.go | xargs go install -v
