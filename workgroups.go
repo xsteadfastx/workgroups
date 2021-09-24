@@ -1,3 +1,5 @@
+// Package workgroups is a little helper for creating workers
+// with the help of sync.Errgroup.
 package workgroups
 
 import (

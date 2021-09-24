@@ -458,6 +458,10 @@ github.com/gofrs/flock
 # github.com/golang-jwt/jwt/v4 v4.0.0
 ## explicit; go 1.15
 github.com/golang-jwt/jwt/v4
+# github.com/golang/gddo v0.0.0-20200324184333-3c2cc9a6329d
+## explicit; go 1.13
+github.com/golang/gddo/doc
+github.com/golang/gddo/gosrc
 # github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da
 ## explicit
 github.com/golang/groupcache/lru
@@ -537,6 +541,9 @@ github.com/google/go-cmp/cmp/internal/diff
 github.com/google/go-cmp/cmp/internal/flags
 github.com/google/go-cmp/cmp/internal/function
 github.com/google/go-cmp/cmp/internal/value
+# github.com/google/go-github/v31 v31.0.0
+## explicit; go 1.13
+github.com/google/go-github/v31/github
 # github.com/google/go-github/v35 v35.3.0
 ## explicit; go 1.16
 github.com/google/go-github/v35/github
@@ -831,6 +838,20 @@ github.com/pmezard/go-difflib/difflib
 # github.com/polyfloyd/go-errorlint v0.0.0-20210722154253-910bb7978349
 ## explicit; go 1.13
 github.com/polyfloyd/go-errorlint/errorlint
+# github.com/posener/goaction v0.1.0
+## explicit; go 1.13
+github.com/posener/goaction
+github.com/posener/goaction/actionutil
+github.com/posener/goaction/log
+# github.com/posener/goreadme v1.4.1
+## explicit; go 1.16
+github.com/posener/goreadme
+github.com/posener/goreadme/cmd/goreadme
+github.com/posener/goreadme/internal/markdown
+github.com/posener/goreadme/internal/template
+# github.com/posener/script v1.1.5
+## explicit; go 1.13
+github.com/posener/script
 # github.com/prometheus/client_golang v1.7.1
 ## explicit; go 1.11
 github.com/prometheus/client_golang/prometheus
