@@ -9,6 +9,7 @@ changelog:
       - ^\[NO CHANGELOG\]
       - "^build:"
       - "^ci:"
+      - "^repo:"
 
 builds:
   - skip: true
