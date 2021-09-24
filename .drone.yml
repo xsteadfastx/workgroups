@@ -1,0 +1,72 @@
+---
+kind: pipeline
+name: default
+
+golang: &golang
+  image: golang:1.17
+
+goreleaser: &goreleaser
+  image: goreleaser/goreleaser:v0.179.0
+
+golangci-lint: &golangci-lint
+  image: golangci/golangci-lint:v1.42.1
+
+steps:
+  - name: tags
+    image: alpine/git
+    commands:
+      - git fetch --tags
+
+  - name: lint
+    <<: *golangci-lint
+    commands:
+      - make lint
+    depends_on:
+      - tags
+
+  - name: test
+    <<: *golang
+    commands:
+      - make test
+      - make coverage
+    depends_on:
+      - tags
+      - lint
+
+  - name: build
+    <<: *goreleaser
+    commands:
+      - make build
+    depends_on:
+      - tags
+      - lint
+      - test
+    when:
+      event:
+        exclude:
+          - tag
+
+  - name: release
+    <<: *goreleaser
+    environment:
+      GITEA_TOKEN:
+        from_secret: gitea_token
+    commands:
+      - goreleaser release --rm-dist
+    depends_on:
+      - tags
+      - lint
+      - test
+    when:
+      event:
+        - tag
+
+  - name: coverage
+    image: plugins/codecov
+    settings:
+      token:
+        from_secret: codecov_token
+      files:
+        - coverage.xml
+    depends_on:
+      - test
