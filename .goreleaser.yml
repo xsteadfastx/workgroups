@@ -10,6 +10,7 @@ changelog:
       - "^build:"
       - "^ci:"
       - "^repo:"
+      - "^test:"
 
 builds:
   - skip: true
