@@ -21,12 +21,14 @@ type Dispatcher struct {
 	numWorkers int
 }
 
-func NewDispatcher(eg *errgroup.Group, numWorkers int) *Dispatcher {
+func NewDispatcher(ctx context.Context, numWorkers int) (*Dispatcher, context.Context) {
+	eg, ctx := errgroup.WithContext(ctx)
+
 	return &Dispatcher{
 		queue:      make(chan Job, numWorkers),
 		eg:         eg,
 		numWorkers: numWorkers,
-	}
+	}, ctx
 }
 
 func (d *Dispatcher) Start(ctx context.Context) {
