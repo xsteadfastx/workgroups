@@ -1,5 +1,5 @@
 // Package workgroups is a little helper for creating workers
-// with the help of sync.Errgroup.
+// with the help of (sync.Errgroup) https://pkg.go.dev/golang.org/x/sync/errgroup.
 //
 // (image/build) https://ci.xsfx.dev/api/badges/xsteadfastx/workgroups/status.svg
 // (image/coverage) https://codecov.io/gh/xsteadfastx/workgroups/branch/main/graph/badge.svg?token=RZE1ZWJSYA
@@ -110,6 +110,7 @@ func (d *Dispatcher) Close() {
 	close(d.queue)
 }
 
+// Wait for all jobs to finnish.
 func (d *Dispatcher) Wait() error {
 	log.Debug().Msg("waiting for jobs to finnish")
 
