@@ -34,3 +34,17 @@ coverage:
 .PHONY: install-tools
 install-tools:
 	go list -f '{{range .Imports}}{{.}} {{end}}' tools.go | xargs go install -v
+
+.PHONY: readme
+readme:
+	goreadme \
+		-constants \
+		-credit=false \
+		-types \
+		-methods \
+		-variabless \
+		> README.md
+
+.PHONY: setup-githooks
+setup-githooks:
+	git config core.hooksPath githooks
