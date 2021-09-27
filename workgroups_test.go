@@ -32,10 +32,10 @@ func TestDispatcher(t *testing.T) {
 	}
 
 	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0))
-	d.Start(ctx)
+	d.Start()
 
 	for i := 0; i < 10; i++ {
-		d.Append(work)
+		d.Append(workgroups.NewJob(ctx, work))
 	}
 
 	d.Close()
@@ -53,8 +53,8 @@ func TestDispatcherError(t *testing.T) {
 	}
 
 	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0))
-	d.Start(ctx)
-	d.Append(work)
+	d.Start()
+	d.Append(workgroups.NewJob(ctx, work))
 	d.Close()
 	err := d.Wait()
 
@@ -70,12 +70,12 @@ func TestDispatcherTimeout(t *testing.T) {
 		return nil
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second/2)
+	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 
 	d, ctx := workgroups.NewDispatcher(ctx, runtime.GOMAXPROCS(0))
-	d.Start(ctx)
-	d.Append(work)
+	d.Start()
+	d.Append(workgroups.NewJob(ctx, work))
 	d.Close()
 	err := d.Wait()
 	require.EqualError(err, "error on waiting: got error from context: context deadline exceeded")

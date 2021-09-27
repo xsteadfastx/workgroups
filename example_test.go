@@ -31,10 +31,10 @@ func Example() {
 	}
 
 	// Starting up the workers.
-	d.Start(ctx)
+	d.Start()
 
 	// Feeding the workers some work.
-	d.Append(work)
+	d.Append(workgroups.NewJob(ctx, work))
 
 	// Closing the channel for work.
 	d.Close()
