@@ -6,9 +6,15 @@ with the help of sync.Errgroup.
 ![build](https://ci.xsfx.dev/api/badges/xsteadfastx/workgroups/status.svg)
 ![coverage](https://codecov.io/gh/xsteadfastx/workgroups/branch/main/graph/badge.svg?token=RZE1ZWJSYA)
 ![report](https://goreportcard.com/badge/go.xsfx.dev/workgroups)
-![reference](https://pkg.go.dev/badge/go.xsfx.dev/workgroups.svg)
 
-![readme](./README.gif)
+![readme](https://git.xsfx.dev/xsteadfastx/workgroups/raw/branch/main/README.gif)
+
+## Links
+
+* [build](https://ci.xsfx.dev/xsteadfastx/workgroups)
+* [coverage](https://codecov.io/github/xsteadfastx/workgroups/)
+* [report](https://goreportcard.com/report/go.xsfx.dev/workgroups)
+* [reference](https://pkg.go.dev/go.xsfx.dev/workgroups)
 
 ## Variables
 
@@ -21,36 +27,36 @@ var ErrInWorker = errors.New("received error in worker")
 
 ## Types
 
-### type [Dispatcher](/workgroups.go#L45)
+### type [Dispatcher](/workgroups.go#L52)
 
 `type Dispatcher struct { ... }`
 
 Dispatcher carries the job queue, the errgroup and the number of workers
 to start.
 
-#### func (*Dispatcher) [Append](/workgroups.go#L95)
+#### func (*Dispatcher) [Append](/workgroups.go#L102)
 
 `func (d *Dispatcher) Append(job Job)`
 
 Append adds a job to the work queue.
 
-#### func (*Dispatcher) [Close](/workgroups.go#L101)
+#### func (*Dispatcher) [Close](/workgroups.go#L108)
 
 `func (d *Dispatcher) Close()`
 
 Close closes the queue channel.
 
-#### func (*Dispatcher) [Start](/workgroups.go#L64)
+#### func (*Dispatcher) [Start](/workgroups.go#L71)
 
 `func (d *Dispatcher) Start()`
 
 Start starts the configured number of workers and waits for jobs.
 
-#### func (*Dispatcher) [Wait](/workgroups.go#L106)
+#### func (*Dispatcher) [Wait](/workgroups.go#L113)
 
 `func (d *Dispatcher) Wait() error`
 
-### type [Job](/workgroups.go#L33)
+### type [Job](/workgroups.go#L40)
 
 `type Job struct { ... }`
 
@@ -60,7 +66,7 @@ Here is an exception, because its a short living object.
 The context is only used as argument for the Work function.
 Please use the NewJob function to get around this context in struct shenanigans.
 
-### type [Work](/workgroups.go#L26)
+### type [Work](/workgroups.go#L33)
 
 `type Work func(ctx context.Context) error`
 

@@ -4,9 +4,16 @@
 // (image/build) https://ci.xsfx.dev/api/badges/xsteadfastx/workgroups/status.svg
 // (image/coverage) https://codecov.io/gh/xsteadfastx/workgroups/branch/main/graph/badge.svg?token=RZE1ZWJSYA
 // (image/report) https://goreportcard.com/badge/go.xsfx.dev/workgroups
-// (image/reference) https://pkg.go.dev/badge/go.xsfx.dev/workgroups.svg
 //
-// (image/readme) ./README.gif
+// (image/readme) https://git.xsfx.dev/xsteadfastx/workgroups/raw/branch/main/README.gif
+//
+// Links
+//
+// * (build) https://ci.xsfx.dev/xsteadfastx/workgroups
+// * (coverage) https://codecov.io/github/xsteadfastx/workgroups/
+// * (report) https://goreportcard.com/report/go.xsfx.dev/workgroups
+// * (reference) https://pkg.go.dev/go.xsfx.dev/workgroups
+//
 package workgroups
 
 import (
