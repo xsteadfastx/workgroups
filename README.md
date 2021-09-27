@@ -1,7 +1,7 @@
 # workgroups
 
 Package workgroups is a little helper for creating workers
-with the help of sync.Errgroup.
+with the help of [sync.Errgroup](https://pkg.go.dev/golang.org/x/sync/errgroup).
 
 ![build](https://ci.xsfx.dev/api/badges/xsteadfastx/workgroups/status.svg)
 ![coverage](https://codecov.io/gh/xsteadfastx/workgroups/branch/main/graph/badge.svg?token=RZE1ZWJSYA)
@@ -52,9 +52,11 @@ Close closes the queue channel.
 
 Start starts the configured number of workers and waits for jobs.
 
-#### func (*Dispatcher) [Wait](/workgroups.go#L113)
+#### func (*Dispatcher) [Wait](/workgroups.go#L114)
 
 `func (d *Dispatcher) Wait() error`
+
+Wait for all jobs to finnish.
 
 ### type [Job](/workgroups.go#L40)
 
