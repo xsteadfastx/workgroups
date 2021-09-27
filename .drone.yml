@@ -105,6 +105,9 @@ steps:
       webhook:
         from_secret: slack_webhook_url
       channel: xsfx-alerts
+    depends_on:
+      - build
+      - release
 
 volumes:
   - name: gobin
