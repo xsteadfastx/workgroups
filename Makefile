@@ -33,7 +33,7 @@ coverage:
 
 .PHONY: install-tools
 install-tools:
-	go list -f '{{range .Imports}}{{.}} {{end}}' tools.go | xargs go install -v
+	go list -f '{{range .Imports}}{{.}} {{end}}' tools/tools.go | xargs go install -v
 
 .PHONY: readme
 readme:

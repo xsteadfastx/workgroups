@@ -1,6 +1,6 @@
-// +build tools
+//go:build tools
 
-package workgroups
+package tools
 
 import (
 	_ "github.com/boumenot/gocover-cobertura"
