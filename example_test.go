@@ -13,6 +13,7 @@ func Example() {
 	d, ctx := workgroups.NewDispatcher(
 		context.Background(),
 		runtime.GOMAXPROCS(0), // This starts as much worker as maximal processes are allowed for go.
+		10,                    // Capacity of the queue.
 	)
 
 	work := func(ctx context.Context) error {

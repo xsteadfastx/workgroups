@@ -31,7 +31,7 @@ func TestDispatcher(t *testing.T) {
 		return nil
 	}
 
-	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0))
+	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0), 20)
 	d.Start()
 
 	for i := 0; i < 10; i++ {
@@ -48,13 +48,38 @@ func TestDispatcher(t *testing.T) {
 
 func TestDispatcherError(t *testing.T) {
 	require := require.New(t)
-	work := func(ctx context.Context) error {
+	errWork := func(ctx context.Context) error {
 		return fmt.Errorf("this is an error") //nolint:goerr113
 	}
 
-	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0))
+	okWork := func(ctx context.Context) error {
+		return nil
+	}
+
+	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0), 2)
 	d.Start()
-	d.Append(workgroups.NewJob(ctx, work))
+	d.Append(workgroups.NewJob(ctx, errWork))
+	d.Append(workgroups.NewJob(ctx, okWork))
+	d.Close()
+	err := d.Wait()
+
+	require.EqualError(err, "error on waiting: go error from work function: this is an error")
+}
+
+func TestDispatcherErrorOneWorker(t *testing.T) {
+	require := require.New(t)
+	errWork := func(ctx context.Context) error {
+		return fmt.Errorf("this is an error") //nolint:goerr113
+	}
+
+	okWork := func(ctx context.Context) error {
+		return nil
+	}
+
+	d, ctx := workgroups.NewDispatcher(context.Background(), 1, 1)
+	d.Start()
+	d.Append(workgroups.NewJob(ctx, errWork))
+	d.Append(workgroups.NewJob(ctx, okWork))
 	d.Close()
 	err := d.Wait()
 
@@ -73,7 +98,7 @@ func TestDispatcherTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 
-	d, ctx := workgroups.NewDispatcher(ctx, runtime.GOMAXPROCS(0))
+	d, ctx := workgroups.NewDispatcher(ctx, runtime.GOMAXPROCS(0), 1)
 	d.Start()
 	d.Append(workgroups.NewJob(ctx, work))
 	d.Close()

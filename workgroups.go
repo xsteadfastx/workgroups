@@ -57,11 +57,11 @@ type Dispatcher struct {
 
 // NewDispatcher creates a new Dispatcher.
 // It takes a context and adds it to the errgroup creation and returns it again.
-func NewDispatcher(ctx context.Context, numWorkers int) (*Dispatcher, context.Context) {
+func NewDispatcher(ctx context.Context, numWorkers, workLength int) (*Dispatcher, context.Context) {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	return &Dispatcher{
-		queue:      make(chan Job, numWorkers),
+		queue:      make(chan Job, workLength),
 		eg:         eg,
 		numWorkers: numWorkers,
 	}, ctx
