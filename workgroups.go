@@ -70,8 +70,8 @@ func NewDispatcher(ctx context.Context, numWorkers, workLength int) (*Dispatcher
 // Start starts the configured number of workers and waits for jobs.
 func (d *Dispatcher) Start() {
 	for i := 0; i < d.numWorkers; i++ {
-		logger := log.With().Caller().Int("worker", i).Logger()
-		logger.Info().Msg("starting worker")
+		logger := log.With().Int("worker", i).Logger()
+		logger.Debug().Msg("starting worker")
 
 		d.eg.Go(func() error {
 			for j := range d.queue {
@@ -91,7 +91,7 @@ func (d *Dispatcher) Start() {
 				}
 			}
 
-			logger.Info().Msg("no work. returning...")
+			logger.Debug().Msg("no work. returning...")
 
 			return nil
 		})
