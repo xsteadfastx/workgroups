@@ -1,0 +1,26 @@
+pipeline:
+  tags:
+    image: alpine/git
+    commands:
+    - git fetch --tags
+  lint:
+    image: golang:1.18
+    commands:
+    - make lint
+  test:
+    image: golang:1.18
+    commands:
+    - make test
+  build:
+    image: golang:1.18
+    commands:
+    - make build
+  release:
+    image: golang:1.18
+    commands:
+    - make release
+    secrets:
+    - gitea_token
+    when:
+      event:
+      - tag
