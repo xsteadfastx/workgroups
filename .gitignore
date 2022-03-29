@@ -1,2 +1,5 @@
 coverage.*
 dist/*
+report.xml
+.gobin/*
+.cache/*
