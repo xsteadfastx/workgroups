@@ -3,6 +3,7 @@ package workgroups_test
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"runtime"
 	"sync"
@@ -104,4 +105,78 @@ func TestDispatcherTimeout(t *testing.T) {
 	d.Close()
 	err := d.Wait()
 	require.EqualError(err, "error on waiting: got error from context: context deadline exceeded")
+}
+
+var errTest = errors.New("just a test")
+
+type counter struct {
+	sync.Mutex
+	count int
+}
+
+func (c *counter) Work(ctx context.Context) error {
+	select {
+	case <-ctx.Done():
+		return fmt.Errorf("got error from context: %w", ctx.Err())
+	default:
+	}
+
+	c.Lock()
+	c.count++
+	c.Unlock()
+
+	return errTest
+}
+
+func TestRetry(t *testing.T) {
+	type args struct {
+		timeout time.Duration
+	}
+
+	tests := []struct {
+		name        string
+		args        args
+		greaterThan int
+		err         error
+	}{
+		{
+			"00",
+			args{
+				time.Second,
+			},
+			500,
+			context.DeadlineExceeded,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			ctx, cancel := context.WithTimeout(context.Background(), tt.args.timeout)
+			defer cancel()
+
+			c := counter{}
+			d, ctx := workgroups.NewDispatcher(
+				ctx,
+				1,
+				1,
+			)
+
+			d.Start()
+			d.Append(
+				workgroups.NewJob(
+					ctx,
+					workgroups.Retry(
+						ctx,
+						time.Millisecond,
+					)(c.Work),
+				),
+			)
+			d.Close()
+			err := d.Wait()
+
+			require.ErrorIs(t, err, tt.err)
+			require.Greater(t, c.count, tt.greaterThan)
+		})
+	}
 }

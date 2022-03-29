@@ -20,6 +20,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/rs/zerolog/log"
 	"golang.org/x/sync/errgroup"
@@ -38,7 +39,7 @@ type Work func(ctx context.Context) error
 // The context is only used as argument for the Work function.
 // Please use the NewJob function to get around this context in struct shenanigans.
 type Job struct {
-	ctx  context.Context
+	ctx  context.Context //nolint:containedctx
 	work Work
 }
 
@@ -119,4 +120,23 @@ func (d *Dispatcher) Wait() error {
 	}
 
 	return nil
+}
+
+// Retry is a middleware for doing a retry in executing job work.
+func Retry(ctx context.Context, wait time.Duration) func(Work) Work {
+	return func(next Work) Work {
+		return func(ctx context.Context) error {
+			for {
+				if err := next(ctx); err == nil {
+					return nil
+				}
+
+				select {
+				case <-ctx.Done():
+					return fmt.Errorf("timeout while fetching information (last error: %w)", ctx.Err())
+				case <-time.After(wait):
+				}
+			}
+		}
+	}
 }
