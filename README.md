@@ -27,38 +27,38 @@ var ErrInWorker = errors.New("received error in worker")
 
 ## Types
 
-### type [Dispatcher](/workgroups.go#L52)
+### type [Dispatcher](/workgroups.go#L53)
 
 `type Dispatcher struct { ... }`
 
 Dispatcher carries the job queue, the errgroup and the number of workers
 to start.
 
-#### func (*Dispatcher) [Append](/workgroups.go#L102)
+#### func (*Dispatcher) [Append](/workgroups.go#L103)
 
 `func (d *Dispatcher) Append(job Job)`
 
 Append adds a job to the work queue.
 
-#### func (*Dispatcher) [Close](/workgroups.go#L108)
+#### func (*Dispatcher) [Close](/workgroups.go#L109)
 
 `func (d *Dispatcher) Close()`
 
 Close closes the queue channel.
 
-#### func (*Dispatcher) [Start](/workgroups.go#L71)
+#### func (*Dispatcher) [Start](/workgroups.go#L72)
 
 `func (d *Dispatcher) Start()`
 
 Start starts the configured number of workers and waits for jobs.
 
-#### func (*Dispatcher) [Wait](/workgroups.go#L114)
+#### func (*Dispatcher) [Wait](/workgroups.go#L115)
 
 `func (d *Dispatcher) Wait() error`
 
 Wait for all jobs to finnish.
 
-### type [Job](/workgroups.go#L40)
+### type [Job](/workgroups.go#L41)
 
 `type Job struct { ... }`
 
@@ -68,7 +68,7 @@ Here is an exception, because its a short living object.
 The context is only used as argument for the Work function.
 Please use the NewJob function to get around this context in struct shenanigans.
 
-### type [Work](/workgroups.go#L33)
+### type [Work](/workgroups.go#L34)
 
 `type Work func(ctx context.Context) error`
 
@@ -131,4 +131,82 @@ func main() {
 
 ```
 hello world from work
+```
+
+### Retry
+
+Retry is a middleware for doing a retry in executing job work.
+
+```golang
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"go.xsfx.dev/workgroups"
+	"runtime"
+	"time"
+)
+
+func main() {
+	d, ctx := workgroups.NewDispatcher(
+		context.Background(),
+		runtime.GOMAXPROCS(0), // This starts as much worker as maximal processes are allowed for go.
+		10,                    // Capacity of the queue.
+	)
+
+	// Just returning some error. So it can retry.
+	failFunc := func() error {
+		fmt.Print("fail ")
+
+		return errors.New("fail") //nolint:goerr113
+	}
+
+	work := func(ctx context.Context) error {
+		// Check if context already expired.
+		// Return if its the case, else just go forward.
+		select {
+		case <-ctx.Done():
+			return fmt.Errorf("got error from context: %w", ctx.Err())
+		default:
+		}
+
+		if err := failFunc(); err != nil {
+			return err
+		}
+
+		return nil
+	}
+
+	// Starting up the workers.
+	d.Start()
+
+	ctx, cancel := context.WithTimeout(ctx, time.Second)
+	defer cancel()
+
+	// Feeding the workers some work.
+	d.Append(
+		workgroups.NewJob(
+			ctx,
+			workgroups.Retry(ctx, time.Second/2)(work), // This will retry after a half second.
+		),
+	)
+
+	// Closing the channel for work.
+	d.Close()
+
+	// Waiting to finnish everything.
+	if err := d.Wait(); err != nil {
+		fmt.Print(err)
+	}
+
+}
+
+```
+
+ Output:
+
+```
+fail fail error on waiting: got error from context: context deadline exceeded
 ```
