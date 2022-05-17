@@ -84,7 +84,7 @@ func (d *Dispatcher) Start() {
 					err := j.work(j.ctx)
 					select {
 					case <-j.ctx.Done():
-						d.log.V(1).Info("received job return after canceled context", "worker", i, "return", err)
+						return
 					default:
 						errChan <- err
 					}
