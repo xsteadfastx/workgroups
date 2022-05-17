@@ -6,8 +6,8 @@ CACHE_DIR := $(ROOT_DIR)/.cache
 export GOBIN := $(ROOT_DIR)/.gobin
 export PATH := $(GOBIN):$(PATH)
 
-GORELEASER := $(GO) run github.com/goreleaser/goreleaser@v1.7.0
-GOLANGCI_LINT := $(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.45.2
+GORELEASER := $(GO) run github.com/goreleaser/goreleaser@v1.8.3
+GOLANGCI_LINT := $(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.46.1
 
 GOTESTSUM := $(GO) run gotest.tools/gotestsum@v1.7.0
 
@@ -47,7 +47,6 @@ coverage: test
 lint:
 	$(GOLANGCI_LINT) run \
 		--enable-all \
-		--disable=godox,varnamelen,exhaustivestruct \
 		--timeout 10m
 
 .PHONY: tidy
