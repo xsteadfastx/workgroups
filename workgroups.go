@@ -22,7 +22,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/go-logr/logr"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -54,36 +54,46 @@ type Dispatcher struct {
 	queue      chan Job
 	eg         *errgroup.Group
 	numWorkers int
+	log        logr.Logger
 }
 
 // NewDispatcher creates a new Dispatcher.
 // It takes a context and adds it to the errgroup creation and returns it again.
-func NewDispatcher(ctx context.Context, numWorkers, workLength int) (*Dispatcher, context.Context) {
+func NewDispatcher(ctx context.Context, log logr.Logger, numWorkers, workLength int) (*Dispatcher, context.Context) {
 	eg, ctx := errgroup.WithContext(ctx)
 
 	return &Dispatcher{
 		queue:      make(chan Job, workLength),
 		eg:         eg,
 		numWorkers: numWorkers,
+		log:        log,
 	}, ctx
 }
 
 // Start starts the configured number of workers and waits for jobs.
 func (d *Dispatcher) Start() {
 	for i := 0; i < d.numWorkers; i++ {
-		logger := log.With().Int("worker", i).Logger()
-		logger.Debug().Msg("starting worker")
+		d.log.V(1).Info("starting worker", "worker", i)
+		i := i
 
 		d.eg.Go(func() error {
 			for j := range d.queue {
 				errChan := make(chan error)
 
 				go func() {
-					errChan <- j.work(j.ctx)
+					err := j.work(j.ctx)
+					select {
+					case <-j.ctx.Done():
+						d.log.V(1).Info("received job return after canceled context", "worker", i, "return", err)
+					default:
+						errChan <- err
+					}
 				}()
 
 				select {
 				case <-j.ctx.Done():
+					close(errChan)
+
 					return fmt.Errorf("got error from context: %w", j.ctx.Err())
 				case err := <-errChan:
 					if err != nil {
@@ -92,7 +102,7 @@ func (d *Dispatcher) Start() {
 				}
 			}
 
-			logger.Debug().Msg("no work. returning...")
+			d.log.V(1).Info("no work. returning...", "worker", i)
 
 			return nil
 		})
@@ -101,19 +111,19 @@ func (d *Dispatcher) Start() {
 
 // Append adds a job to the work queue.
 func (d *Dispatcher) Append(job Job) {
-	log.Debug().Msg("adds job")
+	d.log.V(1).Info("adds job")
 	d.queue <- job
 }
 
 // Close closes the queue channel.
 func (d *Dispatcher) Close() {
-	log.Debug().Msg("closing queue")
+	d.log.V(1).Info("closing queue")
 	close(d.queue)
 }
 
 // Wait for all jobs to finnish.
 func (d *Dispatcher) Wait() error {
-	log.Debug().Msg("waiting for jobs to finnish")
+	d.log.V(1).Info("waiting for jobs to finnish")
 
 	if err := d.eg.Wait(); err != nil {
 		return fmt.Errorf("error on waiting: %w", err)

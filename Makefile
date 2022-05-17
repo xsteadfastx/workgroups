@@ -39,6 +39,10 @@ test:
 		./... \
 		-timeout=120m
 
+.PHONY: coverage
+coverage: test
+	$(GO) tool cover -html coverage.out
+
 .PHONY: lint
 lint:
 	$(GOLANGCI_LINT) run \

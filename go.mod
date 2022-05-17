@@ -4,11 +4,13 @@ go 1.17
 
 require (
 	github.com/boumenot/gocover-cobertura v1.2.0
+	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/stdr v1.2.2
 	github.com/golangci/golangci-lint v1.42.1
 	github.com/goreleaser/goreleaser v0.179.0
 	github.com/posener/goreadme v1.4.1
-	github.com/rs/zerolog v1.25.0
 	github.com/stretchr/testify v1.7.0
+	github.com/tonglil/buflogr v0.0.0-20220413082439-d4c2784244cd
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 )
 

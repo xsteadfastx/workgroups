@@ -5,15 +5,18 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os"
 	"runtime"
 	"time"
 
+	"github.com/go-logr/stdr"
 	"go.xsfx.dev/workgroups"
 )
 
 func Example() {
 	d, ctx := workgroups.NewDispatcher(
 		context.Background(),
+		stdr.New(log.New(os.Stderr, "", log.Lshortfile)),
 		runtime.GOMAXPROCS(0), // This starts as much worker as maximal processes are allowed for go.
 		10,                    // Capacity of the queue.
 	)
@@ -54,6 +57,7 @@ func Example() {
 func ExampleRetry() {
 	d, ctx := workgroups.NewDispatcher(
 		context.Background(),
+		stdr.New(log.New(os.Stderr, "", log.Lshortfile)),
 		runtime.GOMAXPROCS(0), // This starts as much worker as maximal processes are allowed for go.
 		10,                    // Capacity of the queue.
 	)

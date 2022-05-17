@@ -2,16 +2,20 @@
 package workgroups_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"runtime"
 	"sync"
 	"testing"
 	"time"
 
-	"github.com/rs/zerolog/log"
+	"github.com/go-logr/stdr"
 	"github.com/stretchr/testify/require"
+	"github.com/tonglil/buflogr"
 	"go.xsfx.dev/workgroups"
 )
 
@@ -32,7 +36,12 @@ func TestDispatcher(t *testing.T) {
 		return nil
 	}
 
-	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0), 20)
+	d, ctx := workgroups.NewDispatcher(
+		context.Background(),
+		stdr.New(log.New(os.Stderr, "", log.Lshortfile)),
+		runtime.GOMAXPROCS(0),
+		20,
+	)
 	d.Start()
 
 	for i := 0; i < 10; i++ {
@@ -57,7 +66,12 @@ func TestDispatcherError(t *testing.T) {
 		return nil
 	}
 
-	d, ctx := workgroups.NewDispatcher(context.Background(), runtime.GOMAXPROCS(0), 2)
+	d, ctx := workgroups.NewDispatcher(
+		context.Background(),
+		stdr.New(log.New(os.Stderr, "", log.Lshortfile)),
+		runtime.GOMAXPROCS(0),
+		2,
+	)
 	d.Start()
 	d.Append(workgroups.NewJob(ctx, errWork))
 	d.Append(workgroups.NewJob(ctx, okWork))
@@ -77,7 +91,7 @@ func TestDispatcherErrorOneWorker(t *testing.T) {
 		return nil
 	}
 
-	d, ctx := workgroups.NewDispatcher(context.Background(), 1, 1)
+	d, ctx := workgroups.NewDispatcher(context.Background(), stdr.New(log.New(os.Stderr, "", log.Lshortfile)), 1, 1)
 	d.Start()
 	d.Append(workgroups.NewJob(ctx, errWork))
 	d.Append(workgroups.NewJob(ctx, okWork))
@@ -99,7 +113,7 @@ func TestDispatcherTimeout(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Millisecond)
 	defer cancel()
 
-	d, ctx := workgroups.NewDispatcher(ctx, runtime.GOMAXPROCS(0), 1)
+	d, ctx := workgroups.NewDispatcher(ctx, stdr.New(log.New(os.Stderr, "", log.Lshortfile)), runtime.GOMAXPROCS(0), 1)
 	d.Start()
 	d.Append(workgroups.NewJob(ctx, work))
 	d.Close()
@@ -158,6 +172,7 @@ func TestRetry(t *testing.T) {
 			c := counter{}
 			d, ctx := workgroups.NewDispatcher(
 				ctx,
+				stdr.New(log.New(os.Stderr, "", log.Lshortfile)),
 				1,
 				1,
 			)
@@ -179,4 +194,45 @@ func TestRetry(t *testing.T) {
 			require.Greater(t, c.count, tt.greaterThan)
 		})
 	}
+}
+
+func TestErrChanNotUsed(t *testing.T) {
+	var buf bytes.Buffer
+	log := buflogr.NewWithBuffer(&buf)
+	require := require.New(t)
+	work := func(ctx context.Context) error {
+		time.Sleep(5 * time.Second)
+
+		return nil
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	d, ctx := workgroups.NewDispatcher(ctx, log, runtime.GOMAXPROCS(0), 1)
+	d.Start()
+	d.Append(workgroups.NewJob(ctx, work))
+	d.Close()
+
+	go func() {
+		time.Sleep(time.Second / 2)
+		cancel()
+	}()
+
+	err := d.Wait()
+	require.ErrorIs(err, context.Canceled)
+
+	time.Sleep(10 * time.Second)
+
+	// Breaking glass!
+	s := log.GetSink()
+
+	underlier, ok := s.(buflogr.Underlier)
+	if !ok {
+		t.FailNow()
+	}
+
+	bl := underlier.GetUnderlying()
+
+	bl.Mutex().Lock()
+	require.Contains(buf.String(), "received job return after canceled context")
+	bl.Mutex().Unlock()
 }
