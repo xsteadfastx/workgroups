@@ -2,6 +2,7 @@
 package workgroups_test
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/go-logr/stdr"
 	"github.com/stretchr/testify/require"
+	"github.com/tonglil/buflogr"
 	"go.xsfx.dev/workgroups"
 )
 
@@ -192,4 +194,45 @@ func TestRetry(t *testing.T) {
 			require.Greater(t, c.count, tt.greaterThan)
 		})
 	}
+}
+
+func TestErrChanNotUsed(t *testing.T) {
+	var buf bytes.Buffer
+	log := buflogr.NewWithBuffer(&buf)
+
+	require := require.New(t)
+
+	work := func(ctx context.Context) error {
+		time.Sleep(5 * time.Second)
+
+		return nil
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	d, ctx := workgroups.NewDispatcher(ctx, log, runtime.GOMAXPROCS(0), 1)
+	d.Start()
+	d.Append(workgroups.NewJob(ctx, work))
+	d.Close()
+
+	go func() {
+		time.Sleep(time.Second / 2)
+		cancel()
+	}()
+
+	err := d.Wait()
+	require.ErrorIs(err, context.Canceled)
+	time.Sleep(10 * time.Second)
+
+	// Breaking glass!
+	s := log.GetSink()
+
+	underlier, ok := s.(buflogr.Underlier)
+	if !ok {
+		t.FailNow()
+	}
+
+	bl := underlier.GetUnderlying()
+	bl.Mutex().Lock()
+	require.Contains(buf.String(), "received job return after canceled context")
+	bl.Mutex().Unlock()
 }
