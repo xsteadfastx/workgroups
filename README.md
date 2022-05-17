@@ -34,13 +34,13 @@ var ErrInWorker = errors.New("received error in worker")
 Dispatcher carries the job queue, the errgroup and the number of workers
 to start.
 
-#### func (*Dispatcher) [Append](/workgroups.go#L113)
+#### func (*Dispatcher) [Append](/workgroups.go#L114)
 
 `func (d *Dispatcher) Append(job Job)`
 
 Append adds a job to the work queue.
 
-#### func (*Dispatcher) [Close](/workgroups.go#L119)
+#### func (*Dispatcher) [Close](/workgroups.go#L120)
 
 `func (d *Dispatcher) Close()`
 
@@ -52,7 +52,7 @@ Close closes the queue channel.
 
 Start starts the configured number of workers and waits for jobs.
 
-#### func (*Dispatcher) [Wait](/workgroups.go#L125)
+#### func (*Dispatcher) [Wait](/workgroups.go#L126)
 
 `func (d *Dispatcher) Wait() error`
 
