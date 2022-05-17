@@ -34,25 +34,25 @@ var ErrInWorker = errors.New("received error in worker")
 Dispatcher carries the job queue, the errgroup and the number of workers
 to start.
 
-#### func (*Dispatcher) [Append](/workgroups.go#L103)
+#### func (*Dispatcher) [Append](/workgroups.go#L113)
 
 `func (d *Dispatcher) Append(job Job)`
 
 Append adds a job to the work queue.
 
-#### func (*Dispatcher) [Close](/workgroups.go#L109)
+#### func (*Dispatcher) [Close](/workgroups.go#L119)
 
 `func (d *Dispatcher) Close()`
 
 Close closes the queue channel.
 
-#### func (*Dispatcher) [Start](/workgroups.go#L72)
+#### func (*Dispatcher) [Start](/workgroups.go#L74)
 
 `func (d *Dispatcher) Start()`
 
 Start starts the configured number of workers and waits for jobs.
 
-#### func (*Dispatcher) [Wait](/workgroups.go#L115)
+#### func (*Dispatcher) [Wait](/workgroups.go#L125)
 
 `func (d *Dispatcher) Wait() error`
 
@@ -82,14 +82,17 @@ package main
 import (
 	"context"
 	"fmt"
+	"github.com/go-logr/stdr"
 	"go.xsfx.dev/workgroups"
 	"log"
+	"os"
 	"runtime"
 )
 
 func main() {
 	d, ctx := workgroups.NewDispatcher(
 		context.Background(),
+		stdr.New(log.New(os.Stderr, "", log.Lshortfile)),
 		runtime.GOMAXPROCS(0), // This starts as much worker as maximal processes are allowed for go.
 		10,                    // Capacity of the queue.
 	)
@@ -144,7 +147,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/go-logr/stdr"
 	"go.xsfx.dev/workgroups"
+	"log"
+	"os"
 	"runtime"
 	"time"
 )
@@ -152,6 +158,7 @@ import (
 func main() {
 	d, ctx := workgroups.NewDispatcher(
 		context.Background(),
+		stdr.New(log.New(os.Stderr, "", log.Lshortfile)),
 		runtime.GOMAXPROCS(0), // This starts as much worker as maximal processes are allowed for go.
 		10,                    // Capacity of the queue.
 	)
